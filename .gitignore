@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.docx
+*.tex
+app.txt
+generar_figuras.py
+informe_final_visualizacion.md
+referencias_bibliograficas.md
