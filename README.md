@@ -1,5 +1,8 @@
 # Herramienta Interactiva de Visualización y Análisis Espaciotemporal 3D de la Sismicidad en Chile
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/iFabiYTX/sismicidad-chile-illapel-3d/blob/main/analisis_sismicidad_illapel.ipynb)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+
 **Asignatura:** EIN092B Visualización de Datos  
 **Profesor:** Jorge Portilla  
 **Autores:** Fabian Acuña (`facunaa@usm.cl`), Fernando Gutiérrez (`fgutierrezp@usm.cl`)  
@@ -10,37 +13,45 @@
 ## Descripción del Proyecto
 Este repositorio contiene el código fuente, el cuaderno de experimentación y las figuras asociadas al estudio del **Terremoto de Illapel del 16 de septiembre de 2015 ($M_w = 8,3$)** y su secuencia posterior de réplicas ($M \ge 3,0$).
 
-La propuesta combina la consulta automatizada de datos desde la API pública del USGS, el agrupamiento espacial tridimensional no supervisado mediante **DBSCAN** (parametrizado con la curva *k-distance* y el método del codo) y una plataforma web interactiva desarrollada con **Streamlit** y **Plotly**.
+La propuesta articula tres componentes:
+1. **Agrupamiento espacial tridimensional no supervisado (DBSCAN):** Evaluado mediante análisis de sensibilidad sobre $(\varepsilon, MinPts)$, coeficiente de silueta ($S$), validación con el modelo de subducción **Slab2** y contraste empírico frente a **K-Means**.
+2. **Análisis temporal de decaimiento de réplicas:** Ajuste no lineal de la secuencia posterior al sismo principal mediante la **ley de Omori-Utsu** $n(t) = K / (t + c)^p$, obteniendo $p = 0,96$ ($R^2 = 0,990$).
+3. **Entorno de visualización interactiva (Streamlit + Plotly):** Vistas múltiples coordinadas (mapa geoespacial 2D en OpenStreetMap, distribución tridimensional de hipocentros asociada a la subducción con rotación de $360^\circ$ y serie temporal con filtros dinámicos).
+
+---
+
+## Resultados del Análisis de Sensibilidad y Comparación de Algoritmos
+
+| Algoritmo / Configuración | Grupos | Agrupados (%) | Ruido (%) | Prof. Máx. Cluster 0 (km) | Coef. Silueta ($S$) |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| DBSCAN ($\varepsilon = 0,35$, $MinPts = 6$) | 2 | 590 (82,1 %) | 129 (17,9 %) | 52,7 | 0,167 |
+| DBSCAN ($\varepsilon = 0,35$, $MinPts = 8$) | 3 | 569 (79,1 %) | 150 (20,9 %) | 52,7 | -0,090 |
+| **DBSCAN ($\varepsilon = 0,45$, $MinPts = 8$)** | **1** | **620 (86,2 %)** | **99 (13,8 %)** | **55,2** | **0,250** |
+| DBSCAN ($\varepsilon = 0,45$, $MinPts = 10$) | 1 | 615 (85,5 %) | 104 (14,5 %) | 55,2 | 0,242 |
+| DBSCAN ($\varepsilon = 0,55$, $MinPts = 8$) | 1 | 668 (92,9 %) | 51 (7,1 %) | 58,3 | 0,330 |
+| K-Means ($k = 2$) | 2 | 719 (100,0 %) | 0 (0,0 %) | 116,8 | 0,383 |
+| K-Means ($k = 3$) | 3 | 719 (100,0 %) | 0 (0,0 %) | 116,8 | 0,411 |
 
 ---
 
 ## Estructura del Repositorio
 
-* **`analisis_sismicidad_illapel.ipynb`**: Cuaderno Jupyter reproducible que documenta paso a paso la adquisición automática de datos desde la API del USGS, la limpieza del catálogo ($N = 719$ eventos), la normalización mediante puntaje $Z$ (`StandardScaler`), el ajuste de hiperparámetros ($\varepsilon = 0,45$, $MinPts = 8$), la ejecución de DBSCAN 3D y la generación de las 4 figuras en alta resolución (`300 DPI`).
-* **`app.py`**: Aplicación web interactiva en Streamlit que integra:
-  1. **Mapa Geoespacial 2D** sobre cartografía OpenStreetMap.
-  2. **Visor Tridimensional (3D)** de hipocentros con rotación libre en $360^\circ$ del plano de subducción de la Placa de Nazca.
-  3. **Evolución Temporal** de magnitudes y decaimiento de réplicas.
-  4. **Filtros Dinámicos** por rango de fechas, magnitud y grupo sismológico.
-* **`illapel_2015_usgs.csv`**: Catálogo sísmico descargado desde la API del USGS (15 de septiembre al 15 de octubre de 2015). *(Nota: Si este archivo no se encuentra localmente, tanto el notebook como `app.py` lo descargan automáticamente al ejecutarse).*
-* **`requirements.txt`**: Lista de dependencias de Python necesarias para ejecutar el proyecto.
-* **`figura1_mapa_epicentros_2d.png` a `figura4_clusters_dbscan.png`**: Figuras oficiales exportadas a 300 DPI utilizadas en el informe escrito en formato IEEE.
+* **`analisis_sismicidad_illapel.ipynb`**: Cuaderno Jupyter reproducible (ejecutable directamente con el botón *Open in Colab*) con las 7 etapas del estudio.
+* **`app.py`**: Aplicación web interactiva en Streamlit.
+* **`illapel_2015_usgs.csv`**:Instantánea versionada del catálogo del USGS ($N = 719$ eventos entre el 15-09-2015 y el 15-10-2015). Se incluye en el repositorio para garantizar reproducibilidad exacta frente a eventuales revisiones retrospectivas del catálogo del USGS; si el archivo no está presente localmente, el código lo descarga automáticamente desde la API.
+* **`requirements.txt`**: Dependencias de Python con versiones especificadas.
+* **`figura1_comparativa_2d_dbscan.png`**, **`figura2_kdistance_omori.png`**, **`figura3_perfil_subduccion_3d.png`**: Figuras a 300 DPI generadas para el informe en formato IEEE.
 
 ---
 
-## Instrucciones de Instalación y Ejecución
+## Instrucciones de Instalación y Ejecución Local
 
-### 1. Instalar dependencias
-En una terminal ubicada en la carpeta del proyecto, ejecutar:
 ```bash
 pip install -r requirements.txt
-```
-
-### 2. Ejecutar el Dashboard Interactivo
-Para iniciar la aplicación web en el navegador local (`http://localhost:8501`), ejecutar:
-```bash
 python -m streamlit run app.py
 ```
 
-### 3. Ejecutar el Cuaderno Experimental
-El archivo `analisis_sismicidad_illapel.ipynb` puede abrirse y ejecutarse directamente en **Google Colab**, **VS Code** o **Jupyter Notebook** sin requerir configuración manual adicional.
+---
+
+## Licencia
+Distribuido bajo licencia MIT para fines académicos y de investigación.
